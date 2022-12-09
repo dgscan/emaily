@@ -1,5 +1,17 @@
 const express = require ('express');
+const mongoose = require ('mongoose');
+const cookieSession = require('cookie-session');
+const passport = require('passport');
+const keys = require('./config/keys');
 
+require('./routes/authRoutes');
+require('./models/User');
+require('./services/passport');
+
+
+//const authRoutes = require('./routes/authRoutes');
+
+mongoose.connect(keys.mongoURI);
 
 
 //Inside of a single projects we might 
@@ -7,25 +19,24 @@ const express = require ('express');
 //Calling express like a function generates like a new app
 const app = express();
 
+//tell express that it needs to make use of cookies
+app.use(
+    cookieSession({
+        maxAge: 30 * 24 * 60 * 60 * 1000, //30 days milisecs
+        keys: [keys.cookieKey]//
+    })
+);
 
-/**
- * Route handler associate with givin route
- * 
- */
+//tell passport it should make use of cookies to handle auth
+app.use(passport.initialize());
+app.use(passport.session());
 
-app.get('/', (req, res) => {
 
-    res.send({hi: 'buddy'});
 
-});
+//authRoutes(app);
+require ('./routes/authRoutes')(app);
 
-app.get('*', (req, res)=>{
 
-    res.send({ 
-        hi: 'home' 
-    });
-
-});
 
 //HEROKU choses the port or 5000
 const PORT = process.env.PORT || 5000;
@@ -37,6 +48,9 @@ app.listen(PORT);
 
 
 /**
+ * FIRST TIME DEPLOYEMENT
+ * git add .
+ * git commit -m "initial comit"
  * 
  * 
  * heroku create
@@ -50,7 +64,9 @@ git push heroku master
 
 
 /**RE-DEPLOY FILE
- * 
- * 
+ * git status // what is changed
+ * git add .
+ * git commit -m "changed greeting"
+ * git push heroku master
  * 
 */
